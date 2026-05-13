@@ -1,10 +1,11 @@
 import { UserService } from 'src/users/users.service';
 import { LoginDto } from './dto/login.dto';
-import { UnauthorizedException } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
 import { ConfigService } from '@nestjs/config';
 
+@Injectable()
 export class AuthService {
   constructor(
     private userService: UserService,
