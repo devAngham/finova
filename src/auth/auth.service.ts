@@ -1,9 +1,14 @@
 import { UserService } from 'src/users/users.service';
 import { LoginDto } from './dto/login.dto';
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
 import { ConfigService } from '@nestjs/config';
+import { RegisterDto } from './dto/register.dto';
 
 @Injectable()
 export class AuthService {
@@ -38,6 +43,50 @@ export class AuthService {
         id: user.id,
         name: user.name,
         email: user.email,
+      },
+    };
+  }
+
+  async register(registerDto: RegisterDto) {
+    const { name, email, phone, password } = registerDto;
+
+    const emailExist = await this.userService.findByEmail(email);
+
+    if (emailExist) {
+      throw new ConflictException('Email already used');
+    }
+
+    const phoneExist = await this.userService.findByPhone(phone);
+
+    if (phoneExist) {
+      throw new ConflictException('Phone already used');
+    }
+
+    const hashedPassword = bcrypt.hashSync(
+      password,
+      +this.configService.get('SALT'),
+    );
+
+    const user = await this.userService.create({
+      name,
+      email,
+      phone,
+      password: hashedPassword,
+    });
+
+    const tokens = await this.generateTokens(user.id);
+
+    await this.userService.update(user.id, {
+      refreshToken: tokens.refreshToken,
+    });
+
+    return {
+      ...tokens,
+      user: {
+        id: user.id,
+        email,
+        phone,
+        name,
       },
     };
   }
