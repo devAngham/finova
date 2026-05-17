@@ -1,15 +1,20 @@
+import { Account } from 'src/accounts/account.entity';
 import {
   Entity,
   Column,
   PrimaryGeneratedColumn,
   CreateDateColumn,
   UpdateDateColumn,
+  OneToMany,
 } from 'typeorm';
 
 @Entity()
 export class User {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
+
+  @OneToMany(() => Account, (account) => account.user)
+  accounts!: Account[];
 
   @Column()
   name!: string;
