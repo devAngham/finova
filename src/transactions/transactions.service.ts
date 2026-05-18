@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 
 import { InternalTransactionDto } from './dto/internal.transaction';
+import { ExternalTransactionDto } from './dto/external.transaction';
 import { Repository } from 'typeorm';
 import {
   Transaction,
@@ -59,6 +60,37 @@ export class TransactionServices {
       type: TransactionType.INTERNAL,
       status: TransactionStatus.COMPLETED,
       description: internalTransactionDto.description,
+    });
+
+    return this.transactionRepositery.save(transaction);
+  }
+
+  async externalTransaction(
+    userId: string,
+    externalTransactionDto: ExternalTransactionDto,
+  ): Promise<Transaction> {
+    const fromAccount = await this.accountRepositery.findOne({
+      where: { id: externalTransactionDto.fromAccount, user: { id: userId } },
+    });
+
+    if (!fromAccount) throw new NotFoundException('Account not found');
+
+    if (Number(fromAccount.balance) < externalTransactionDto.amount) {
+      throw new BadRequestException('Insufficient balance');
+    }
+
+    fromAccount.balance =
+      Number(fromAccount.balance) - Number(externalTransactionDto.amount);
+    await this.accountRepositery.save(fromAccount);
+
+    const transaction = this.transactionRepositery.create({
+      fromAccount,
+      amount: externalTransactionDto.amount,
+      type: TransactionType.EXTERNAL,
+      status: TransactionStatus.PENDING,
+      description: externalTransactionDto.description,
+      recipientName: externalTransactionDto.recipientName,
+      iban: externalTransactionDto.iban,
     });
 
     return this.transactionRepositery.save(transaction);
