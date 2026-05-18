@@ -3,20 +3,20 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { Repository } from 'typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
 
 import { InternalTransactionDto } from './dto/internal.transaction';
 import { ExternalTransactionDto } from './dto/external.transaction';
-import { Repository } from 'typeorm';
 import {
   Transaction,
   TransactionType,
   TransactionStatus,
 } from './transaction.entity';
 import { Account } from 'src/accounts/account.entity';
-import { InjectRepository } from '@nestjs/typeorm';
 
 @Injectable()
-export class TransactionServices {
+export class TransactionService {
   constructor(
     @InjectRepository(Transaction)
     private transactionRepositery: Repository<Transaction>,
@@ -94,5 +94,21 @@ export class TransactionServices {
     });
 
     return this.transactionRepositery.save(transaction);
+  }
+
+  async getTransactions(userId: string): Promise<Transaction[]> {
+    return this.transactionRepositery.find({
+      where: { fromAccount: { user: { id: userId } } },
+      relations: ['fromAccount', 'toAccount'],
+      order: { createdAt: 'DESC' },
+    });
+  }
+
+  async getAccountTransactions(accountId: string): Promise<Transaction[]> {
+    return this.transactionRepositery.find({
+      where: { fromAccount: { id: accountId } },
+      relations: ['fromAccount', 'toAccount'],
+      order: { createdAt: 'DESC' },
+    });
   }
 }
