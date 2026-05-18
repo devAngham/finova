@@ -155,3 +155,76 @@ Protected — Get account balance.
   "Currency": "USD"
 }
 ```
+
+## Transaction Endpoints
+
+### POST `/transactions/internal`
+  Protected — Transfer between accounts.
+
+**Request:**
+```json
+{
+  "fromAccount": "uuid",
+  "toAccount": "uuid",
+  "amount": 100,
+  "description": "Monthly savings"
+}
+```
+
+**Response `201`:**
+```json
+{
+  "id": "uuid",
+  "type": "internal",
+  "status": "completed",
+  "amount": 100,
+  "createdAt": "2026-05-18T..."
+}
+```
+
+---
+
+### POST `/transactions/external`
+  Protected — Transfer to external bank via IBAN.
+
+          > ⚠️ **Note:** External transfers in this project are simulated.
+          > In a production environment, this would integrate with:
+          > - **SWIFT network** for international transfers
+          > - **Local banking APIs** (Central Bank)
+          > - **Banking license** requirements
+          > 
+          > Currently, the transfer is recorded as `status: pending` 
+          > and the amount is deducted from the source account.
+
+**Request:**
+```json
+{
+  "fromAccount": "uuid",
+  "amount": 50,
+  "iban": "JO94CBJO0010000000000131000302",
+  "recipientName": "Ahmed Ali",
+  "description": "Payment"
+}
+```
+
+**Response `201`:**
+```json
+{
+  "id": "uuid",
+  "type": "external",
+  "status": "pending",
+  "amount": 50,
+  "iban": "JO94CBJO...",
+  "recipientName": "Ahmed Ali"
+}
+```
+
+---
+
+### GET `/transactions`
+  Protected — Get all user transactions.
+
+---
+
+### GET `/transactions/:accountId`
+  Protected — Get transactions for specific account.

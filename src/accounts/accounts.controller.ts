@@ -42,4 +42,9 @@ export class AccountsController {
   getAccountBalance(@Param('id') id: string) {
     return this.accountService.getBalance(id);
   }
+
+  // @Post(':id/deposit')
+  // deposit(@Param('id') id: string, @Body() body: { amount: number }) {
+  //   return this.accountService.addBalance(id, body.amount);
+  // }
 }
