@@ -1,9 +1,12 @@
 import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { CacheModule } from '@nestjs/cache-manager';
+
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 
-import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+
 import { AuthModule } from './auth/auth.module';
 import { AccountsModule } from './accounts/accounts.module';
 import { TransactionsModule } from './transactions/transactions.module';
@@ -29,6 +32,13 @@ import { TransactionsModule } from './transactions/transactions.module';
         synchronize: configService.get('NODE_ENV') !== 'production',
       }),
       inject: [ConfigService],
+    }),
+    // Redis Cache
+    CacheModule.register({
+      isGlobal: true,
+      store: 'ioredis',
+      host: 'localhost',
+      port: 6379,
     }),
     AuthModule,
     AccountsModule,
