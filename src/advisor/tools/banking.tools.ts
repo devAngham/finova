@@ -30,9 +30,14 @@ export const bankingTools = [
         'Get all bank accounts for the current user with their balances',
       parameters: {
         type: 'object',
-        properties: {},
-        required: [],
+        properties: {
+          userId: {
+            type: 'string',
+            description: 'The user ID - always pass "current" as value',
+          },
+        },
       },
+      required: ['userId'],
     },
   },
   {

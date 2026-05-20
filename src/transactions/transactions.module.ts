@@ -7,10 +7,7 @@ import { Transaction } from './transaction.entity';
 import { Account } from 'src/accounts/account.entity';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([Transaction]),
-    TypeOrmModule.forFeature([Transaction, Account]),
-  ],
+  imports: [TypeOrmModule.forFeature([Transaction, Account])],
   controllers: [TransactionController],
   providers: [TransactionService],
   exports: [TransactionService],

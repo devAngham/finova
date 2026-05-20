@@ -10,6 +10,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AuthModule } from './auth/auth.module';
 import { AccountsModule } from './accounts/accounts.module';
 import { TransactionsModule } from './transactions/transactions.module';
+import { AdvisorModule } from './advisor/advisor.module';
 
 @Module({
   imports: [
@@ -43,6 +44,7 @@ import { TransactionsModule } from './transactions/transactions.module';
     AuthModule,
     AccountsModule,
     TransactionsModule,
+    AdvisorModule,
   ],
   controllers: [AppController],
   providers: [AppService],
