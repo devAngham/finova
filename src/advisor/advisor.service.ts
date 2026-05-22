@@ -1,18 +1,27 @@
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+/* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { Injectable } from '@nestjs/common';
 import Groq from 'groq-sdk';
 
-import { AccountService } from 'src/accounts/accounts.service';
-import { TransactionService } from 'src/transactions/transactions.service';
+import { AccountService } from '../accounts/accounts.service';
+import { TransactionService } from '../transactions/transactions.service';
 import { bankingTools } from './tools/banking.tools';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class AdvisorService {
-  private groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+  private groq: Groq;
 
   constructor(
     private accountService: AccountService,
     private transactionService: TransactionService,
-  ) {}
+    private configService: ConfigService,
+  ) {
+    this.groq = new Groq({
+      apiKey: this.configService.get('GROQ_API_KEY'),
+    });
+  }
 
   async chat(userId: string, msg: string) {
     const userContext = await this.buildUserContext(userId);
@@ -29,6 +38,8 @@ export class AdvisorService {
         - Never expose full account numbers
         - If user asks something unrelated to banking, politely decline
         - Be concise and professional
+
+        NOT supported: cash deposits, loans, credit cards
       `;
 
     // let chatHistory = this.getChatHistory(userId);
@@ -38,8 +49,6 @@ export class AdvisorService {
       // ...chatHistory,
       { role: 'user', content: msg },
     ];
-
-    // console.log('Messages sent to Groq:', messages);
 
     const completion = await this.groq.chat.completions.create({
       model: 'llama-3.3-70b-versatile',
@@ -51,16 +60,38 @@ export class AdvisorService {
     const choice = completion.choices[0];
 
     if (choice.finish_reason === 'tool_calls' && choice.message.tool_calls) {
-      const results = await Promise.all(
-        choice.message.tool_calls.map((toolCall) => {
+      const toolResults = await Promise.all(
+        choice.message.tool_calls.map(async (toolCall) => {
           const args = JSON.parse(toolCall.function.arguments) as Record<
             string,
-            unknown
+            any
           >;
-          return this.handleToolCall(userId, toolCall.function.name, args);
+          const results = (await this.handleToolCall(
+            userId,
+            toolCall.function.name,
+            args,
+          )) as any;
+
+          return { toolCall, results };
         }),
       );
-      return results.length === 1 ? results[0] : results;
+      messages.push(choice.message as any); // Add the tool call message to the history
+      toolResults.forEach(({ toolCall, results }) => {
+        messages.push({
+          role: 'tool',
+          tool_call_id: toolCall.id,
+          content: JSON.stringify(results),
+        } as any);
+      });
+
+      const finalCompletion = await this.groq.chat.completions.create({
+        model: 'llama-3.3-70b-versatile',
+        messages: messages as any[],
+        tools: bankingTools,
+        tool_choice: 'auto',
+      });
+      // return results.length === 1 ? results[0] : results;
+      return finalCompletion.choices[0].message.content;
     }
 
     return choice.message.content;

@@ -36,8 +36,8 @@ export const bankingTools = [
             description: 'The user ID - always pass "current" as value',
           },
         },
+        required: ['userId'],
       },
-      required: ['userId'],
     },
   },
   {
