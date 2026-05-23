@@ -307,7 +307,6 @@ Your checking account balance is now $800."
     > Conversation history is stored in **Redis** and persists 
     > across sessions with a 24-hour expiry.
 
-
     > ⚠️ **Note:** The AI advisor uses Groq LLaMA 3.3 70B with 
     > MCP Tool Use for function calling. Conversation history 
     > is persisted in Redis with 24-hour expiry.
