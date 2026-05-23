@@ -228,3 +228,87 @@ Protected — Get account balance.
 
 ### GET `/transactions/:accountId`
   Protected — Get transactions for specific account.
+
+## AI Advisor Endpoints
+
+### POST `/advisor/chat`
+  Protected — Chat with AI banking advisor.
+
+**Request:**
+```json
+{
+  "message": "show me my accounts"
+}
+```
+
+**Response — Text:**
+```json
+"You have 2 accounts:
+- Checking (USD): $900
+- Savings (EUR): $0"
+```
+
+**Response — Tool executed:**
+```json
+"Transfer of $100 completed successfully! 
+Your checking account balance is now $800."
+```
+
+**Supported operations via chat:**
+| Request | Tool Used |
+|---------|-----------|
+| "show my accounts" | `get_accounts` |
+| "what's my balance?" | `get_account_balance` |
+| "transfer $X to account Y" | `internal_transfer` |
+| "send $X to IBAN" | `external_transfer` |
+| "show my transactions" | `get_account_transactions` |
+| "create a savings account" | `create_account` |
+
+**Multi-language support:**
+```json
+{ "message": "اعطيني حساباتي" }
+{ "message": "Montrez mes comptes" }
+```
+
+---
+
+### GET `/advisor/history`
+  Protected — Get conversation history (stored in Redis).
+
+**Response:**
+```json
+[
+  { "role": "user", "content": "show my accounts" },
+  { "role": "assistant", "content": "You have 2 accounts..." }
+]
+```
+
+---
+
+### DELETE `/advisor/history`
+  Protected — Clear conversation history.
+
+---
+
+
+    > ### Multi-turn Conversation
+    > The AI advisor remembers the full conversation history, 
+    > allowing natural follow-up messages:
+    > 
+    > ```
+    > User: "show my accounts"
+    > AI:   "You have checking ($900) and savings ($0)"
+    > 
+    > User: "transfer $100 from the first one"
+    > AI:   → understands "first one" = checking account ✅
+    >       → executes transfer without asking for account ID
+    > ```
+    > 
+    > Conversation history is stored in **Redis** and persists 
+    > across sessions with a 24-hour expiry.
+
+
+    > ⚠️ **Note:** The AI advisor uses Groq LLaMA 3.3 70B with 
+    > MCP Tool Use for function calling. Conversation history 
+    > is persisted in Redis with 24-hour expiry.
+    > Always asks for confirmation before executing transfers.
