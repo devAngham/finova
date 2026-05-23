@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { CacheModule } from '@nestjs/cache-manager';
+import { RedisModule } from '@nestjs-modules/ioredis';
 
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -35,11 +35,13 @@ import { AdvisorModule } from './advisor/advisor.module';
       inject: [ConfigService],
     }),
     // Redis Cache
-    CacheModule.register({
-      isGlobal: true,
-      store: 'ioredis',
-      host: 'localhost',
-      port: 6379,
+    RedisModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: (configService: ConfigService) => ({
+        type: 'single',
+        url: configService.get<string>('REDIS_URL') ?? 'redis://localhost:6379',
+      }),
+      inject: [ConfigService],
     }),
     AuthModule,
     AccountsModule,

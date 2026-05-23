@@ -2,6 +2,9 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { Injectable } from '@nestjs/common';
+import { InjectRedis } from '@nestjs-modules/ioredis';
+
+import Redis from 'ioredis';
 import Groq from 'groq-sdk';
 
 import { AccountService } from '../accounts/accounts.service';
@@ -14,6 +17,7 @@ export class AdvisorService {
   private groq: Groq;
 
   constructor(
+    @InjectRedis() private redis: Redis,
     private accountService: AccountService,
     private transactionService: TransactionService,
     private configService: ConfigService,
@@ -21,6 +25,25 @@ export class AdvisorService {
     this.groq = new Groq({
       apiKey: this.configService.get('GROQ_API_KEY'),
     });
+  }
+
+  async getChatHistory(userId: string): Promise<any[]> {
+    try {
+      const history = await this.redis.get(`chat:${userId}`);
+      if (!history) return [];
+      return JSON.parse(history) as any[];
+    } catch (error) {
+      console.error('Error accessing Redis:', error);
+      return [];
+    }
+  }
+
+  async saveChatHistory(userId: string, messages: any[]) {
+    await this.redis.set(`chat:${userId}`, JSON.stringify(messages));
+  }
+
+  async clearChatHistory(userId: string) {
+    await this.redis.del(`chat:${userId}`);
   }
 
   async chat(userId: string, msg: string) {
@@ -42,11 +65,11 @@ export class AdvisorService {
         NOT supported: cash deposits, loans, credit cards
       `;
 
-    // let chatHistory = this.getChatHistory(userId);
+    const chatHistory = await this.getChatHistory(userId);
 
     const messages = [
       { role: 'system', content: prompt },
-      // ...chatHistory,
+      ...chatHistory,
       { role: 'user', content: msg },
     ];
 
@@ -91,9 +114,22 @@ export class AdvisorService {
         tool_choice: 'auto',
       });
       // return results.length === 1 ? results[0] : results;
+      await this.saveChatHistory(userId, [
+        ...chatHistory,
+        { role: 'user', content: msg },
+        {
+          role: 'assistant',
+          content: finalCompletion.choices[0].message.content,
+        },
+      ]);
       return finalCompletion.choices[0].message.content;
     }
 
+    await this.saveChatHistory(userId, [
+      ...chatHistory,
+      { role: 'user', content: msg },
+      { role: 'assistant', content: choice.message.content },
+    ]);
     return choice.message.content;
   }
   buildUserContext = async (userId: string) => {
