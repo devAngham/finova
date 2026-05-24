@@ -5,7 +5,12 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 
-@WebSocketGateway({ cors: true })
+@WebSocketGateway({
+  cors: {
+    origin: '*',
+    methods: ['GET', 'POST'],
+  },
+})
 export class EventsGateway {
   @WebSocketServer()
   server!: Server;
@@ -18,6 +23,7 @@ export class EventsGateway {
    */
   @SubscribeMessage('join')
   handleJoin(client: Socket, userId: string): void {
+    console.log('User joined:', userId);
     void client.join(`user:${userId}`);
     client.emit('joined', { message: 'Connected successfully' });
   }
@@ -40,6 +46,7 @@ export class EventsGateway {
    * @returns void — emits 'transaction.completed' event
    */
   transactionCompleted(userId: string, amount: number): void {
+    console.log(`Notifying user ${userId} of completed transaction: $${amount}`);
     this.sendNotification(userId, 'transaction.completed', {
       message: `Transfer of $${amount} completed successfully`,
       amount,

@@ -103,7 +103,7 @@ export class AdvisorService {
         messages.push({
           role: 'tool',
           tool_call_id: toolCall.id,
-          content: JSON.stringify(results),
+          content: JSON.stringify(results) ?? '{}',
         } as any);
       });
 
@@ -163,6 +163,7 @@ export class AdvisorService {
         return this.accountService.getBalance(toolArgs.accountId);
 
       case 'internal_transfer':
+        console.log(5555, userId)
         return this.transactionService.internalTransaction(
           userId,
           toolArgs as any,
