@@ -307,8 +307,54 @@ Your checking account balance is now $800."
     > Conversation history is stored in **Redis** and persists 
     > across sessions with a 24-hour expiry.
 
-
     > ⚠️ **Note:** The AI advisor uses Groq LLaMA 3.3 70B with 
     > MCP Tool Use for function calling. Conversation history 
     > is persisted in Redis with 24-hour expiry.
     > Always asks for confirmation before executing transfers.
+
+## WebSocket Events
+
+### Connection
+```javascript
+const socket = io('http://localhost:3000')
+
+// Join your personal notification room
+socket.emit('join', 'YOUR_USER_ID')
+```
+
+---
+
+### Client → Server Events
+
+| Event | Payload | Description |
+|-------|---------|-------------|
+| `join` | `userId: string` | Join personal notification room |
+
+---
+
+### Server → Client Events
+
+| Event | Payload | Description |
+|-------|---------|-------------|
+| `joined` | `{ message: string }` | Confirmation of room join |
+| `transaction.completed` | `{ message, amount }` | Transfer completed successfully |
+| `transaction.failed` | `{ message, reason }` | Transfer failed |
+| `balance.updated` | `{ message, accountId, newBalance }` | Account balance changed |
+
+---
+
+### Example
+
+```javascript
+socket.on('transaction.completed', (data) => {
+  console.log(data.message)
+  // "Transfer of $100 completed successfully ✅"
+})
+
+socket.on('balance.updated', (data) => {
+  console.log(data.message)
+  // "Balance updated: $800"
+})
+```
+
+> **Note:** Each user has a private room — notifications are only sent to the relevant user.

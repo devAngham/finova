@@ -11,6 +11,7 @@ import { AuthModule } from './auth/auth.module';
 import { AccountsModule } from './accounts/accounts.module';
 import { TransactionsModule } from './transactions/transactions.module';
 import { AdvisorModule } from './advisor/advisor.module';
+import { EventsModule } from './websocket/events.module';
 
 @Module({
   imports: [
@@ -47,6 +48,7 @@ import { AdvisorModule } from './advisor/advisor.module';
     AccountsModule,
     TransactionsModule,
     AdvisorModule,
+    EventsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

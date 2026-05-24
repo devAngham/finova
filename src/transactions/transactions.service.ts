@@ -14,6 +14,7 @@ import {
   TransactionStatus,
 } from './transaction.entity';
 import { Account } from 'src/accounts/account.entity';
+import { EventsGateway } from 'src/websocket/events.gateway';
 
 @Injectable()
 export class TransactionService {
@@ -22,20 +23,23 @@ export class TransactionService {
     private transactionRepositery: Repository<Transaction>,
     @InjectRepository(Account)
     private accountRepositery: Repository<Account>,
+    private eventsGateway: EventsGateway,
   ) {}
 
   async internalTransaction(
     userId: string,
     internalTransactionDto: InternalTransactionDto,
-  ): Promise<Transaction> {
+  ): Promise<void> {
     const fromAccount = await this.accountRepositery.findOne({
       where: { id: internalTransactionDto.fromAccount },
+      relations: ['user'],
     });
 
     if (!fromAccount) throw new NotFoundException('Source account not found');
 
     const toAccount = await this.accountRepositery.findOne({
       where: { id: internalTransactionDto.toAccount },
+      relations: ['user'],
     });
 
     if (!toAccount)
@@ -62,7 +66,32 @@ export class TransactionService {
       description: internalTransactionDto.description,
     });
 
-    return this.transactionRepositery.save(transaction);
+    this.transactionRepositery.save(transaction);
+
+    // Send real-time notifications to (fromAccount) owner
+    console.log('Notifying user', fromAccount)
+    this.eventsGateway.transactionCompleted(
+      fromAccount.user.id,
+      internalTransactionDto.amount,
+    );
+    this.eventsGateway.balanceUpdated(
+      fromAccount.user.id,
+      fromAccount.id,
+      Number(fromAccount.balance),
+    );
+
+    // Send real-time notifications to (toAccount) owner
+    if (toAccount.user) {
+      this.eventsGateway.transactionCompleted(
+        toAccount.user.id,
+        internalTransactionDto.amount,
+      );
+      this.eventsGateway.balanceUpdated(
+        toAccount.user.id,
+        internalTransactionDto.toAccount,
+        toAccount.balance,
+      );
+    }
   }
 
   async externalTransaction(
