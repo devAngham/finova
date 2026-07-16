@@ -74,7 +74,7 @@ export class AdvisorService {
     ];
 
     const completion = await this.groq.chat.completions.create({
-      model: 'llama-3.3-70b-versatile',
+      model: 'qwen/qwen3.6-27b',
       messages: messages as any[],
       tools: bankingTools,
       tool_choice: 'auto',
@@ -108,7 +108,7 @@ export class AdvisorService {
       });
 
       const finalCompletion = await this.groq.chat.completions.create({
-        model: 'llama-3.3-70b-versatile',
+        model: 'qwen/qwen3.6-27b',
         messages: messages as any[],
         tools: bankingTools,
         tool_choice: 'auto',
@@ -130,6 +130,7 @@ export class AdvisorService {
       { role: 'user', content: msg },
       { role: 'assistant', content: choice.message.content },
     ]);
+
     return choice.message.content;
   }
   buildUserContext = async (userId: string) => {
