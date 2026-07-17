@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-misused-promises */
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { advisorService, ChatMessage } from '../lib/advisorService';
@@ -80,14 +81,17 @@ export default function ChatPage() {
     setLoading(true);
 
     try {
-      const reply = await advisorService.chat(text)
-      const aiMsg: ChatMessage = { role: 'assistant', content: reply }
+      const response = await advisorService.chat(text);
+      const aiMsg: ChatMessage = { role: 'assistant', content: response.reply };
       setMessages((prev) => [...prev, aiMsg]);
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const errorResponse = err as {
+        response?: { data?: { message?: string } };
+      };
       const errMsg: ChatMessage = {
         role: 'assistant',
         content:
-          err.response?.data?.message ||
+          errorResponse.response?.data?.message ||
           'Something went wrong. Please try again.',
       };
       setMessages((prev) => [...prev, errMsg]);
