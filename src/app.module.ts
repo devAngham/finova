@@ -12,6 +12,7 @@ import { AccountsModule } from './accounts/accounts.module';
 import { TransactionsModule } from './transactions/transactions.module';
 import { AdvisorModule } from './advisor/advisor.module';
 import { EventsModule } from './websocket/events.module';
+import { DemoModule } from './demo/demo.module';
 
 @Module({
   imports: [
@@ -49,6 +50,7 @@ import { EventsModule } from './websocket/events.module';
     TransactionsModule,
     AdvisorModule,
     EventsModule,
+    DemoModule,
   ],
   controllers: [AppController],
   providers: [AppService],
