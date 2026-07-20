@@ -39,4 +39,13 @@ export const transactionService = {
     const { data } = await api.post('/transactions/external', body);
     return data;
   },
+
+  async getAccountBalance(): Promise<number> {
+    const { data } = await api.get('/accounts');
+    console
+    if (data && data.length > 0) {
+      return data[0].balance;
+    }
+    return 0;
+  },
 };
