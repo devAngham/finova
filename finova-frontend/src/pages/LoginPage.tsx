@@ -5,6 +5,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { authService } from '../lib/authService';
+import { demoService } from '../lib/demoService';
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -35,10 +36,18 @@ export default function LoginPage() {
     }
   };
 
-  const handleDemo = () => {
-    setEmail('demo@finova.app');
-    setPassword('demo123');
+  const handleDemo = async () => {
     setError('');
+    setLoading(true);
+    try {
+      await demoService.reset();
+      setEmail('demo1@finova.app');
+      setPassword('Demo@123');
+    } catch {
+      setError('Failed to load demo. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -128,9 +137,33 @@ export default function LoginPage() {
             <span style={styles.dividerText}>or</span>
             <div style={styles.dividerLine} />
           </div>
-          <button style={styles.btnDemo} onClick={handleDemo}>
-            Try demo account
-          </button>
+          <div style={styles.demoButtons}>
+            <p style={styles.demoLabel}>Try Demo:</p>
+            <div style={styles.demoRow}>
+              <button
+                style={styles.btnDemoUser}
+                onClick={async () => {
+                  await demoService.reset();
+                  setEmail('demo1@finova.app');
+                  setPassword('Demo@123');
+                  setError('');
+                }}
+              >
+                👩 Sarah
+              </button>
+              <button
+                style={styles.btnDemoUser}
+                onClick={async () => {
+                  await demoService.reset();
+                  setEmail('demo2@finova.app');
+                  setPassword('Demo@123');
+                  setError('');
+                }}
+              >
+                👨 Ahmed
+              </button>
+            </div>
+          </div>
           <p style={styles.signupText}>
             Don't have an account?{' '}
             <a href="#" style={styles.signupLink}>
@@ -311,5 +344,28 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: '13px',
     color: '#dc2626',
     marginBottom: '1rem',
+  },
+  demoButtons: {
+    marginTop: '1rem',
+  },
+  demoLabel: {
+    fontSize: '12px',
+    color: '#94a3b8',
+    textAlign: 'center',
+    marginBottom: '8px',
+  },
+  demoRow: {
+    display: 'flex',
+    gap: '8px',
+  },
+  btnDemoUser: {
+    flex: 1,
+    height: '40px',
+    background: '#f8fafc',
+    border: '0.5px solid #cbd5e1',
+    borderRadius: '8px',
+    fontSize: '13px',
+    color: '#475569',
+    cursor: 'pointer',
   },
 };

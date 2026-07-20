@@ -7,8 +7,8 @@ export interface ChatMessage {
 }
 
 export const advisorService = {
-  async chat(message: string): Promise<{ reply: string }> {
-    const { data } = await api.post<{ reply: string }>('/advisor/chat', {
+  async chat(message: string): Promise<string> {
+    const { data } = await api.post<string>('/advisor/chat', {
       message,
     });
     return data;

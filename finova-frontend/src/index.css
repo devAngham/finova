@@ -24,3 +24,27 @@ button {
 input {
   font-family: 'Inter', sans-serif;
 }
+
+/* Markdown styles inside chat bubbles */
+.markdown p {
+  margin: 0 0 8px 0;
+}
+
+.markdown p:last-child {
+  margin-bottom: 0;
+}
+
+.markdown ol,
+.markdown ul {
+  padding-left: 20px;
+  margin: 8px 0;
+}
+
+.markdown li {
+  margin-bottom: 6px;
+  line-height: 1.6;
+}
+
+.markdown strong {
+  font-weight: 600;
+}
