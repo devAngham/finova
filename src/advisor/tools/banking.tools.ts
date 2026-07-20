@@ -156,4 +156,22 @@ export const bankingTools = [
       },
     },
   },
+  {
+    type: 'function',
+    function: {
+      name: 'find_account_by_number',
+      description:
+        'Find a Finova account by account number to verify it exists before transfer. Always use this before executing internal_transfer.',
+      parameters: {
+        type: 'object',
+        properties: {
+          accountNumber: {
+            type: 'string',
+            description: 'The account number starting with FIN-',
+          },
+        },
+        required: ['accountNumber'],
+      },
+    },
+  },
 ];
