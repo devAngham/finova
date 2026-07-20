@@ -11,6 +11,7 @@ export default function DashboardPage() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [notification, setNotification] = useState<string | null>(null);
+  const [balance, setBalance] = useState<number>(0);
 
   useSocket({
     onTransactionCompleted: (data) => {
@@ -31,10 +32,14 @@ export default function DashboardPage() {
 
   const loadTransactions = async () => {
     try {
-      const data = await transactionService.getAll();
+      const [data, bal] = await Promise.all([
+        transactionService.getAll(),
+        transactionService.getAccountBalance(),
+      ])
       setTransactions(data);
+      setBalance(bal);
     } catch (e) {
-      console.error('Failed to load transactions', e);
+      console.error('Failed to load', e);
     } finally {
       setLoading(false);
     }
@@ -48,9 +53,9 @@ export default function DashboardPage() {
     loadTransactions();
   }, []);
 
-  const totalBalance = transactions.reduce((sum, t) => {
-    return t.type === 'credit' ? sum + t.amount : sum - t.amount;
-  }, 0);
+  // const totalBalance = transactions.reduce((sum, t) => {
+  //   return t.type === 'credit' ? sum + t.amount : sum - t.amount;
+  // }, 0);
 
   return (
     <div style={styles.page}>
@@ -106,8 +111,7 @@ export default function DashboardPage() {
         <div style={styles.balanceCard}>
           <p style={styles.balanceLabel}>Total Balance</p>
           <h2 style={styles.balanceAmount}>
-            $
-            {totalBalance.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+            ${balance.toLocaleString('en-US', { minimumFractionDigits: 2 })}
           </h2>
           <div style={styles.balanceActions}>
             <button style={styles.actionBtn} onClick={() => navigate('/chat')}>
@@ -144,7 +148,11 @@ export default function DashboardPage() {
                     <div>
                       <p style={styles.txName}>{tx.description}</p>
                       <p style={styles.txDate}>
-                        {new Date(tx.createdAt).toLocaleDateString()}
+                        {new Date(tx.createdAt).toLocaleDateString('en-GB', {
+                          day: '2-digit',
+                          month: 'short',
+                          year: 'numeric',
+                        })}
                       </p>
                     </div>
                   </div>
