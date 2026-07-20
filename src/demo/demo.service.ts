@@ -5,19 +5,32 @@ import { InjectRedis } from '@nestjs-modules/ioredis';
 import Redis from 'ioredis';
 import * as bcrypt from 'bcryptjs';
 
-import { Account } from '../accounts/account.entity';
-import { Transaction, TransactionType, TransactionStatus } from '../transactions/transaction.entity';
+import { Account, AccountType, Currency } from '../accounts/account.entity';
+import {
+  Transaction,
+  TransactionType,
+  TransactionStatus,
+} from '../transactions/transaction.entity';
 import { User } from '../users/user.entity';
+import { AccountService } from '../accounts/accounts.service';
 
-const DEMO_USERS = [
+const DEMO_USERS: {
+  name: string;
+  email: string;
+  phone: string;
+  password: string;
+  balance: number;
+  accountType: 'savings' | 'checking';
+  currency: 'USD' | 'EUR';
+}[] = [
   {
     name: 'Sarah Johnson',
     email: 'demo1@finova.app',
     phone: '+1234567001',
     password: 'Demo@123',
     balance: 2500,
-    accountType: 'savings',
-    currency: 'USD',
+    accountType: AccountType.SAVINGS,
+    currency: Currency.USD,
   },
   {
     name: 'Ahmed Hassan',
@@ -25,8 +38,8 @@ const DEMO_USERS = [
     phone: '+1234567002',
     password: 'Demo@123',
     balance: 1800,
-    accountType: 'savings',
-    currency: 'USD',
+    accountType: AccountType.SAVINGS,
+    currency: Currency.USD,
   },
 ];
 
@@ -40,9 +53,10 @@ export class DemoService {
     @InjectRepository(Transaction)
     private transactionRepository: Repository<Transaction>,
     @InjectRedis() private redis: Redis,
+    private accountService: AccountService,
   ) {}
 
-  async resetDemo(): Promise<{ message: string }> {
+  async resetDemo(): Promise<{ message: string; accounts: any }> {
     const accounts: Account[] = [];
 
     for (const demoUser of DEMO_USERS) {
@@ -69,13 +83,10 @@ export class DemoService {
       });
 
       if (!account) {
-        account = this.accountRepository.create({
-          accountType: demoUser.accountType as any,
-          currency: demoUser.currency as any,
-          user: { id: user.id },
-          accountNumber: `FIN-DEMO-${demoUser.name.split(' ')[0].toUpperCase()}`,
+        account = await this.accountService.create(user.id, {
+          accountType: demoUser.accountType,
+          currency: demoUser.currency,
         });
-        account = await this.accountRepository.save(account);
       }
 
       account.balance = demoUser.balance;
@@ -135,10 +146,27 @@ export class DemoService {
     }
 
     return {
-      message: 'Demo reset successfully! Sarah: $2,500 | Ahmed: $1,800',
+      message: 'Demo reset successfully!',
+      accounts: {
+        sarah: {
+          email: 'demo1@finova.app',
+          password: 'Demo@123',
+          balance: '$2,500',
+          accountNumber: sarahAccount.accountNumber,
+          accountId: sarahAccount.id,
+        },
+        ahmed: {
+          email: 'demo2@finova.app',
+          password: 'Demo@123',
+          balance: '$1,800',
+          accountNumber: ahmedAccount.accountNumber,
+          accountId: ahmedAccount.id,
+        },
+      },
     };
   }
 
+  // eslint-disable-next-line @typescript-eslint/require-await
   async getDemoCredentials() {
     return {
       accounts: [
