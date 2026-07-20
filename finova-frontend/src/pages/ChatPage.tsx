@@ -1,5 +1,7 @@
 /* eslint-disable @typescript-eslint/no-misused-promises */
 import { useState, useRef, useEffect } from 'react';
+import ReactMarkdown from 'react-markdown';
+
 import { useNavigate } from 'react-router-dom';
 import { advisorService, ChatMessage } from '../lib/advisorService';
 import { authService } from '../lib/authService';
@@ -20,6 +22,8 @@ export default function ChatPage() {
   const [loading, setLoading] = useState(false);
   const [notification, setNotification] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const user = authService.getUser();
 
   useSocket({
     onTransactionCompleted: (data) => {
@@ -51,17 +55,16 @@ export default function ChatPage() {
   const loadHistory = async () => {
     try {
       const history = await advisorService.getHistory();
-      if (history.length > 0) {
-        setMessages(history);
-      } else {
-        setMessages([
-          {
-            role: 'assistant',
-            content:
-              "Hi! I'm Finova AI 👋 I can help you transfer money, pay bills, check your balance, and more. Just tell me what you need!",
-          },
-        ]);
-      }
+      setMessages(
+        history.length > 0
+          ? history
+          : [
+              {
+                role: 'assistant',
+                content: "Hi! I'm Finova AI 👋 How can I help you today?",
+              },
+            ],
+      );
     } catch {
       setMessages([
         {
@@ -81,8 +84,8 @@ export default function ChatPage() {
     setLoading(true);
 
     try {
-      const response = await advisorService.chat(text);
-      const aiMsg: ChatMessage = { role: 'assistant', content: response.reply };
+      const reply = await advisorService.chat(text);
+      const aiMsg: ChatMessage = { role: 'assistant', content: reply };
       setMessages((prev) => [...prev, aiMsg]);
     } catch (err: unknown) {
       const errorResponse = err as {
@@ -164,9 +167,18 @@ export default function ChatPage() {
               <p style={styles.aiStatus}>● Online</p>
             </div>
           </div>
-          <button style={styles.clearBtn} onClick={handleClearHistory}>
-            Clear history
-          </button>
+          <div style={styles.currentUser}>
+            <div style={styles.userAvatar}>{user?.name?.charAt(0) || '?'}</div>
+            <div>
+              <p style={styles.userName}>{user?.name}</p>
+              <p style={styles.userEmail}>
+                ID: {user?.id?.slice(0, 8).toUpperCase()}...
+              </p>
+            </div>
+            <button style={styles.clearBtn} onClick={handleClearHistory}>
+              Clear history
+            </button>
+          </div>
         </div>
 
         <div style={styles.messages}>
@@ -190,7 +202,13 @@ export default function ChatPage() {
                     msg.role === 'assistant' ? '0.5px solid #e2e8f0' : 'none',
                 }}
               >
-                {msg.content}
+                {msg.role === 'assistant' ? (
+                  <div className="markdown">
+                    <ReactMarkdown>{msg.content}</ReactMarkdown>
+                  </div>
+                ) : (
+                  msg.content
+                )}
               </div>
             </div>
           ))}
@@ -442,5 +460,36 @@ const styles: Record<string, React.CSSProperties> = {
     padding: '8px',
     background: '#f8fafc',
     borderTop: '0.5px solid #e2e8f0',
+  },
+  currentUser: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '10px',
+    background: '#f8fafc',
+    border: '0.5px solid #e2e8f0',
+    borderRadius: '10px',
+    padding: '8px 14px',
+  },
+  userAvatar: {
+    width: '32px',
+    height: '32px',
+    background: '#1d4ed8',
+    borderRadius: '50%',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    color: '#fff',
+    fontSize: '14px',
+    fontWeight: 600,
+  },
+  userName: {
+    fontSize: '13px',
+    fontWeight: 500,
+    color: '#0f172a',
+  },
+  userEmail: {
+    fontSize: '11px',
+    color: '#94a3b8',
+    marginTop: '2px',
   },
 };
