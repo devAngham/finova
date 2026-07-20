@@ -20,8 +20,8 @@ const DEMO_USERS: {
   phone: string;
   password: string;
   balance: number;
-  accountType: 'savings' | 'checking';
-  currency: 'USD' | 'EUR';
+  accountType: AccountType;
+  currency: Currency;
 }[] = [
   {
     name: 'Sarah Johnson',

@@ -12,6 +12,8 @@ import { TransactionService } from '../transactions/transactions.service';
 import { bankingTools } from './tools/banking.tools';
 import { ConfigService } from '@nestjs/config';
 
+import { getBankingPrompt } from './prompts/banking.prompt';
+
 @Injectable()
 export class AdvisorService {
   private groq: Groq;
@@ -49,21 +51,7 @@ export class AdvisorService {
   async chat(userId: string, msg: string) {
     const userContext = await this.buildUserContext(userId);
 
-    const prompt = `
-      You are finova AI, an intelligent and friendly banking account,
-      User context:
-      ${userContext}
-      
-      Rules:
-        - Respond in the same language of the user (Arabic, English), Never switch language
-        - Before executing any transaction, always ask for confirmation first
-        - After confirmation, proceed with the transfer
-        - Never expose full account numbers
-        - If user asks something unrelated to banking, politely decline
-        - Be concise and professional
-
-        NOT supported: cash deposits, loans, credit cards
-      `;
+    const prompt = getBankingPrompt(userContext);
 
     const chatHistory = await this.getChatHistory(userId);
 
@@ -164,7 +152,7 @@ export class AdvisorService {
         return this.accountService.getBalance(toolArgs.accountId);
 
       case 'internal_transfer':
-        console.log(5555, userId)
+        console.log(5555, userId);
         return this.transactionService.internalTransaction(
           userId,
           toolArgs as any,
@@ -180,7 +168,22 @@ export class AdvisorService {
         return this.transactionService.getAccountTransactions(
           toolArgs.accountId,
         );
-
+      case 'find_account_by_number': {
+        const account = await this.accountService.findByAccountNumber(
+          toolArgs.accountNumber,
+        );
+        if (!account)
+          return {
+            error: 'Account not found. Please check the account number.',
+          };
+        return {
+          accountId: account.id,
+          accountNumber: account.accountNumber,
+          ownerName: account.user?.name,
+          currency: account.currency,
+          accountType: account.accountType,
+        };
+      }
       default:
         return { error: `Unknown tool: ${toolName}` };
     }

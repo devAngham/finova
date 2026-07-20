@@ -42,7 +42,7 @@ export class Transaction {
   @Column({ nullable: true })
   description?: string;
 
-  @Column({ unique: true, nullable: true })
+  @Column({ nullable: true })
   iban?: string;
 
   @Column({ nullable: true })

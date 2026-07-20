@@ -54,6 +54,13 @@ export class AccountService {
     return { balance: account?.balance, Currency: account?.currency };
   }
 
+  async findByAccountNumber(accountNumber: string): Promise<Account | null> {
+    return this.accountRepository.findOne({
+      where: { accountNumber },
+      relations: ['user'],
+    });
+  }
+
   // async addBalance(accountId: string, amount: number): Promise<Account> {
   //   const account = await this.accountRepository.findOne({
   //     where: { id: accountId },
