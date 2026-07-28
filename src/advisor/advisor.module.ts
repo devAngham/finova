@@ -9,6 +9,7 @@ import { TransactionService } from 'src/transactions/transactions.service';
 import { AdvisorService } from './advisor.service';
 import { ConfigService } from '@nestjs/config';
 import { EventsModule } from 'src/websocket/events.module';
+import { GroqProvider } from './gateway/providers/groq.provider';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Account, Transaction]), EventsModule],
@@ -18,6 +19,7 @@ import { EventsModule } from 'src/websocket/events.module';
     AccountService,
     TransactionService,
     ConfigService,
+    GroqProvider,
   ],
   exports: [AdvisorService],
 })
