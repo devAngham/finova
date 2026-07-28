@@ -7,6 +7,7 @@ import { AdvisorController } from './advisor.controller';
 import { AccountService } from 'src/accounts/accounts.service';
 import { TransactionService } from 'src/transactions/transactions.service';
 import { AdvisorService } from './advisor.service';
+import { AiService } from './ai.service';
 import { ConfigService } from '@nestjs/config';
 import { EventsModule } from 'src/websocket/events.module';
 import { GroqProvider } from './gateway/providers/groq.provider';
@@ -20,6 +21,7 @@ import { GroqProvider } from './gateway/providers/groq.provider';
     TransactionService,
     ConfigService,
     GroqProvider,
+    AiService,
   ],
   exports: [AdvisorService],
 })

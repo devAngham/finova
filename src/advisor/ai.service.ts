@@ -1,6 +1,22 @@
-export interface Message {
-  role: 'system' | 'user' | 'assistant' | 'tool';
-  content: string;
-  tool_calls_id?: string;
-  name?: string;
+import { Injectable } from '@nestjs/common';
+
+import {
+  GatewayMessage,
+  ModelRequest,
+  RiskLevel,
+} from '../advisor/gateway/model-gateway.types';
+
+@Injectable()
+export class AiService {
+  buildRequest(
+    messages: GatewayMessage[],
+    tools: unknown[],
+    riskLevel: RiskLevel,
+  ): ModelRequest {
+    return {
+      messages,
+      tools,
+      riskLevel,
+    };
+  }
 }
