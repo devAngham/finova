@@ -5,11 +5,11 @@ import {
   ModelRequest,
   RiskLevel,
 } from '../advisor/gateway/model-gateway.types';
-import { GroqProvider } from './gateway/providers/groq.provider';
+import { ModelGatewayService } from './gateway/model-gateway.service';
 
 @Injectable()
 export class AiService {
-  constructor(private readonly groqProvider: GroqProvider) {}
+  constructor(private readonly modelGatewayService: ModelGatewayService) {}
 
   buildRequest(
     messages: GatewayMessage[],
@@ -32,7 +32,7 @@ export class AiService {
     const request = this.buildRequest(messages, tools, riskLevel);
 
     // First call to the model
-    const response = await this.groqProvider.execute(request);
+    const response = await this.modelGatewayService.execute(request);
 
     if (!response.toolCalls) {
       return response.content;
@@ -67,7 +67,7 @@ export class AiService {
       riskLevel,
     );
 
-    const finalResponse = await this.groqProvider.execute(finalRequest);
+    const finalResponse = await this.modelGatewayService.execute(finalRequest);
 
     return finalResponse.content;
   }
