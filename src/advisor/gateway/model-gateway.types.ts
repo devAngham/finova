@@ -50,6 +50,7 @@ export interface ModelRequest {
   messages: GatewayMessage[];
   tools?: unknown[];
   riskLevel: RiskLevel;
+  routingContext?: RoutingContext,
 }
 
 export interface ModelResponse {
