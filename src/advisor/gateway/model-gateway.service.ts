@@ -2,8 +2,8 @@ import { Injectable } from '@nestjs/common';
 
 import { ModelProvider } from './model-provider.interface';
 import { ModelRequest, ModelResponse } from './model-gateway.types';
-import { GroqProvider } from './providers/groq.provider';
-
+// import { GroqProvider } from './providers/groq.provider';
+import { ClaudeProvider } from './providers/claude.provider';
 
 /**
  * Single entry point for executing a model request. Callers (AiService)
@@ -13,7 +13,8 @@ import { GroqProvider } from './providers/groq.provider';
  */
 @Injectable()
 export class ModelGatewayService {
-  constructor(private readonly groqProvider: GroqProvider) {}
+  // constructor(private readonly groqProvider: GroqProvider) {}
+  constructor(private readonly groqProvider: ClaudeProvider) {}
 
   async execute(request: ModelRequest): Promise<ModelResponse> {
     const provider = this.selectProvider(request);
