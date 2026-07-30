@@ -12,6 +12,7 @@ import { AiService } from './ai.service';
 import { ConfigService } from '@nestjs/config';
 import { EventsModule } from 'src/websocket/events.module';
 import { GroqProvider } from './gateway/providers/groq.provider';
+import { ClaudeProvider } from './gateway/providers/claude.provider';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Account, Transaction]), EventsModule],
@@ -22,6 +23,7 @@ import { GroqProvider } from './gateway/providers/groq.provider';
     TransactionService,
     ConfigService,
     GroqProvider,
+    ClaudeProvider,
     AiService,
     ModelGatewayService,
   ],
