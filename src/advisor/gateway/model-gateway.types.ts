@@ -5,6 +5,14 @@ export interface GatewayMessage {
   content: string | null;
   tool_call_id?: string;
   name?: string;
+  /**
+   * Present on assistant messages that requested tool calls. Needed
+   * so the message history stays valid when replayed back to a
+   * provider — some providers (Mistral) strictly reject an assistant
+   * message that has neither content nor tool_calls, even if the
+   * conversation history shows the tool was requested and answered.
+   */
+  tool_calls?: GatewayToolCall[];
 }
 
 export interface GatewayToolCall {

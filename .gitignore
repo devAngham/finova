@@ -4,3 +4,4 @@ dist/
 .env.development
 .env.production
 ind.html
+mistral-debug.log
