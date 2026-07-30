@@ -53,6 +53,7 @@ export class AiService {
       {
         role: 'assistant',
         content: response.content,
+        tool_calls: response.toolCalls ?? undefined,
       },
       ...toolResults.map(({ toolCall, result }) => ({
         role: 'tool' as const,
