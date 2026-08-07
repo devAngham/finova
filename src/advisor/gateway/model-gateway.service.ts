@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable @typescript-eslint/require-await */
 import { Injectable } from '@nestjs/common';
 
 import { ModelProvider } from './model-provider.interface';
@@ -27,18 +25,19 @@ export class ModelGatewayService {
   }
 
   /**
-   * Chooses which provider handles this request.
+   * Chooses which provider handles this request based on risk level.
    *
-   * Today: always returns MistralProvider — there is only one provider
-   * registered, so no real routing decision exists yet.
+   * 'high' risk (currently: internal/external transfers) routes to
+   * Mistral — not because it's necessarily the most accurate model,
+   * but because it's the only non-Groq provider available today.
+   * When Claude becomes available, this is the one line that changes.
    *
-   * Intended future logic once a second provider (e.g. Groq, Claude) is
-   * added: inspect request.riskLevel (and later request.routingContext)
-   * to route 'high' risk requests to a more careful/accurate provider,
-   * while 'low' risk requests continue to use the faster one.
+   * 'low' risk continues to use Groq for speed/cost.
    */
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
   private selectProvider(request: ModelRequest): ModelProvider {
-    return this.groqProvider;
+    return request.riskLevel === 'high'
+      ? this.mistralProvider
+      : this.groqProvider;
   }
 }
