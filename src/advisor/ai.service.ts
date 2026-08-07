@@ -6,6 +6,7 @@ import {
   RiskLevel,
 } from '../advisor/gateway/model-gateway.types';
 import { ModelGatewayService } from './gateway/model-gateway.service';
+import { classifyRisk } from './gateway/risk-classifier';
 
 @Injectable()
 export class AiService {
@@ -38,6 +39,11 @@ export class AiService {
       return response.content;
     }
 
+    const effectiveRiskLevel = response.toolCalls.some(
+      (toolCall) => classifyRisk(toolCall.name) === 'high',
+    )
+      ? 'high'
+      : 'low';
     // Model asked for tools — execute them via the caller-supplied
     // function, then send the results back for a final answer.
     const toolResults = await Promise.all(
@@ -66,7 +72,7 @@ export class AiService {
     const finalRequest = this.buildRequest(
       followedUpMessages,
       tools,
-      riskLevel,
+      effectiveRiskLevel,
     );
 
     const finalResponse = await this.modelGatewayService.execute(finalRequest);
